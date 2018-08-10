@@ -1,7 +1,6 @@
 package com.example.g015c1140.journey
 
 import android.annotation.SuppressLint
-import android.support.design.internal.BaselineLayout
 import android.support.design.internal.BottomNavigationItemView
 import android.support.design.internal.BottomNavigationMenuView
 import android.support.design.widget.BottomNavigationView
@@ -11,7 +10,7 @@ import android.view.View
 
 
 
-class BottomNavigationViewHelper {
+class AdjustmentBottomNavigation {
 
     @SuppressLint("RestrictedApi")
             /**
@@ -29,12 +28,12 @@ class BottomNavigationViewHelper {
             shiftingMode.setBoolean(menuView, false)
             shiftingMode.isAccessible = false
 
-            for (i in 0 until menuView.childCount) {
+            for (_count in 0 until menuView.childCount) {
 
                 /**
                  * アイテムの幅調整
                  */
-                val bottomNavigationItemView = menuView.getChildAt(i) as BottomNavigationItemView
+                val bottomNavigationItemView = menuView.getChildAt(_count) as BottomNavigationItemView
 
                 bottomNavigationItemView.setShiftingMode(false)
                 // チェックされた値を設定すると、ビューが更新されるみたい
@@ -42,23 +41,14 @@ class BottomNavigationViewHelper {
                 bottomNavigationItemView.setChecked(false)
 
                 /**
-                 * アイテムのテキストを非表示にする。
-                 * アイテムのテキストビューをくくってるBaselineLayoutをGONE
+                 * アイコンサイズを調整
                  */
-                val smallLabel = menuView.getChildAt(i).findViewById<View>(android.support.design.R.id.smallLabel)
-                val baselineLayout = smallLabel.parent as BaselineLayout
-                baselineLayout.visibility = View.GONE
-
-                /**
-                 * アイコンサイズを40dpに調整
-                 */
-                val iconView = menuView.getChildAt(i).findViewById<View>(android.support.design.R.id.icon)
+                val iconView = menuView.getChildAt(_count).findViewById<View>(android.support.design.R.id.icon)
                 val layoutParams = iconView.layoutParams
                 val displayMetrics = view.resources.displayMetrics
-                layoutParams.height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40f, displayMetrics).toInt()
-                layoutParams.width = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40f, displayMetrics).toInt()
+                layoutParams.height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30f, displayMetrics).toInt()
+                layoutParams.width = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30f, displayMetrics).toInt()
                 iconView.layoutParams = layoutParams
-
             }
         } catch (e: NoSuchFieldException ) {
             e.printStackTrace()

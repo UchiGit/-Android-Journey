@@ -61,7 +61,7 @@
                 android:hint="プラン名を入力してください"
                 android:inputType="text"
                 android:lines="1"
-                android:maxLines="5"
+                android:maxLength="20"
                 android:minLines="1" />
 
             <TextView

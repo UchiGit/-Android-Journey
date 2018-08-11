@@ -3,15 +3,16 @@ package com.example.g015c1140.journey
 import android.os.AsyncTask
 import android.util.Log
 
-class PostPlanAsyncTask: AsyncTask<String, String, String>() {
+class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String, String>() {
 
     //callBack用
     var callbackPostPlanAsyncTask: CallbackPostPlanAsyncTask? = null
+    val spotIdList = arrayList
 
 
     //insert
     override fun doInBackground(vararg params: String?): String? {
-        /*
+/*
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
         var result: String? = null
@@ -47,7 +48,7 @@ class PostPlanAsyncTask: AsyncTask<String, String, String>() {
                         ).toByteArray()
                 )
 
-                for (_cnt in 5 until params.size) {
+                for (_cnt in 1 until spotIdList.size) {
                     var _cntAlpha = when (_cnt) {
                         5 -> "a"
                         6 -> "b"
@@ -71,7 +72,7 @@ class PostPlanAsyncTask: AsyncTask<String, String, String>() {
                         24 -> "t"
                         else -> "X"
                     }
-                    out.write(("&spot_id_$_cntAlpha=${params[_cnt]}").toByteArray())
+                    out.write(("&spot_id_$_cntAlpha=${spotIdList[_cnt]}").toByteArray())
                 }
                 out.flush()
                 Log.d("debug", "flush")
@@ -101,14 +102,50 @@ class PostPlanAsyncTask: AsyncTask<String, String, String>() {
         //finallyで接続を切断してあげましょう。
         //失敗した時はnullやエラーコードなどを返しましょう。
         */
-        return "HTTP-OK"
+
+        var result =
+                "user_id=${Setting().USER_ID}" +
+                "&plan_title=${params[0]}" +
+                "&plan_comment=${params[1]}" +
+                "&transportation=${params[2]}" +
+                "&price=${params[3]}"+
+                "&area=${params[4]}"
+
+        for (_cnt in 0 until spotIdList.size) {
+            var _cntAlpha = when (_cnt) {
+                0 -> "a"
+                1 -> "b"
+                2 -> "c"
+                3 -> "d"
+                4 -> "e"
+                5 -> "f"
+                6 -> "g"
+                7 -> "h"
+                8 -> "i"
+                9 -> "j"
+                10 -> "k"
+                11 -> "l"
+                12 -> "m"
+                13 -> "n"
+                14 -> "o"
+                15 -> "p"
+                16 -> "q"
+                17 -> "r"
+                18 -> "s"
+                19 -> "t"
+                else -> "X"
+            }
+            result += "&spot_id_$_cntAlpha=${spotIdList[_cnt]}"
+        }
+            Log.d("test PostPlan", "result: $result")
+            return "HTTP-OK"
     }
 
     //返ってきたデータをビューに反映させる処理はonPostExecuteに書きます。これはメインスレッドです。
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
 
-        Log.d("test PlanSpot","HTTP")
+        Log.d("test PlanSpot","onPostEx")
         callbackPostPlanAsyncTask!!.callback(result!!)
         return
 

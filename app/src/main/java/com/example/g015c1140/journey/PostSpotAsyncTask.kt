@@ -84,7 +84,7 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
 
-        Log.d("test PostSpot","HTTTP")
+        Log.d("test PostSpot","onPostEx")
         callbackPostSpotAsyncTask!!.callback(result!!)
         return
 

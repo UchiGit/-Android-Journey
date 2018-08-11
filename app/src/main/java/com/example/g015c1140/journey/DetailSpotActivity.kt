@@ -3,20 +3,32 @@ package com.example.g015c1140.journey
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapFragment
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_detail_spot.*
 
 
 
-class DetailSpotActivity : AppCompatActivity() {
+class DetailSpotActivity : AppCompatActivity(), OnMapReadyCallback {
+
+    lateinit var spot: SpotData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail_spot)
         setSupportActionBar(toolbar)
 
+        spot = intent.getSerializableExtra("SPOT") as SpotData
+
+        //ツールバーセット
         title = "スポット詳細"
         //戻るボタンセット
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -26,7 +38,21 @@ class DetailSpotActivity : AppCompatActivity() {
         var bottomavigation: BottomNavigationView = findViewById(R.id.navigation)
         // BottomNavigationViewHelperでアイテムのサイズ、アニメーションを調整
         AdjustmentBottomNavigation().disableShiftMode(bottomavigation)
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+        navigation.setOnNavigationItemSelectedListener( ON_NAVIGATION_ITEM_SELECTED_LISTENER)
+
+        //Map呼び出し
+        val mapFragment = fragmentManager.findFragmentById(R.id.mapFragment) as MapFragment
+        mapFragment.getMapAsync(this)
+
+        spotNameTextView.text = spot.title
+        Log.d("test", "com ${spot.comment}")
+        spotDetailTextView.text = spot.comment
+
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(spot.latitude, spot.longitude),17f))
+        googleMap.addMarker(MarkerOptions().position(LatLng(spot.latitude, spot.longitude)).title(spot.title)).showInfoWindow()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -52,22 +78,22 @@ class DetailSpotActivity : AppCompatActivity() {
     }
 
     //ボトムバータップ時
-    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
+    private val  ON_NAVIGATION_ITEM_SELECTED_LISTENER = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_home -> {
-                spotNameEditText.setText(R.string.title_home)
+                spotNameTextView.setText(R.string.title_home)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_search -> {
-                spotNameEditText.setText(R.string.title_search)
+                spotNameTextView.setText(R.string.title_search)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_favorite -> {
-                spotNameEditText.setText(R.string.title_favorite)
+                spotNameTextView.setText(R.string.title_favorite)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_setting -> {
-                spotNameEditText.setText(R.string.title_setting)
+                spotNameTextView.setText(R.string.title_setting)
                 return@OnNavigationItemSelectedListener true
             }
         }

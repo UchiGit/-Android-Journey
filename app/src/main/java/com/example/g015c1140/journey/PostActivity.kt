@@ -35,6 +35,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
 
     //交通手段ボタン用
     lateinit var transportationImageButton: MutableList<ImageButton>
+
     //交通手段ボタンフラグ用
     val TRANSPORTATION_IMAGE_FLG = mutableListOf(0,0,0,0,0,0,0)
 
@@ -72,7 +73,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         var bottomavigation: BottomNavigationView = findViewById(R.id.navigation)
         // BottomNavigationViewHelperでアイテムのサイズ、アニメーションを調整
         AdjustmentBottomNavigation().disableShiftMode(bottomavigation)
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+        navigation.setOnNavigationItemSelectedListener(ON_NAVIGATION_ITEM_SELECTED_LISTENER)
 
         //Map呼び出し
         val mapFragment = fragmentManager.findFragmentById(R.id.mapFragment) as MapFragment
@@ -95,6 +96,8 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
                     startActivityForResult(Intent(this, SelectSpotActivity::class.java).putExtra("SPOTCNT",spotList.size),RESULT_CODE)
                     /************************************************/
                 }
+            }else {
+                startActivity(Intent(this, DetailSpotActivity::class.java).putExtra("SPOT",spotList[position - 1]))
             }
         }
 
@@ -297,7 +300,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
     }
 
     //ボトムバータップ時
-    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
+    private val  ON_NAVIGATION_ITEM_SELECTED_LISTENER = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_home -> {
                 planTitleEditText.setText(R.string.title_home)
@@ -319,77 +322,71 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         false
     }
 
-    fun onPostButtonTapped(view: View){
+    fun onPostButtonTapped(view: View) {
         //全部がOKな場合
 
-        if (spotList.size != 0) {
-        }else{
-            Toast.makeText(this,"スポットがない",Toast.LENGTH_SHORT).show()
-        }
+        if (checkData()) {
+            /********************/
+            //spotを投稿
+            //スポットリストがある
+            val psat = PostSpotAsyncTask()
+            psat.setOnCallback(object : PostSpotAsyncTask.CallbackPostSpotAsyncTask() {
+                override fun callback(result: String) {
+                    super.callback(result)
+                    // ここからAsyncTask処理後の処理を記述します。
+                    Log.d("test SpotCallback", "非同期処理結果：$result")
 
-        /********************/
-        //spotを投稿
-        //スポットリストがある
+                    if (result == "HTTP-OK") {
+                        /********************/
 
-        val psat = PostSpotAsyncTask()
-        psat.setOnCallback(object : PostSpotAsyncTask.CallbackPostSpotAsyncTask() {
-            override fun callback(result: String) {
-                super.callback(result)
-                // ここからAsyncTask処理後の処理を記述します。
-                Log.d("test SpotCallback", "非同期処理$result")
+                        //spot取得
+                        //スポットリストがある
+                        val gsat = GetSpotAsyncTask(spotList.size)
+                        gsat.setOnCallback(object : GetSpotAsyncTask.CallbackGetSpotAsyncTask() {
+                            override fun callback(result: ArrayList<String>) {
+                                super.callback(result)
+                                // ここからAsyncTask処理後の処理を記述します。
+                                Log.d("test GetSpotCallback", "非同期処理$result")
 
-                if (result == "HTTP-OK"){
-
-                    //spot取得
-                    //スポットリストがある
-                    val gsat = GetSpotAsyncTask(spotList.size)
-                    gsat.setOnCallback(object : GetSpotAsyncTask.CallbackGetSpotAsyncTask() {
-                        override fun callback(result: ArrayList<String>) {
-                            super.callback(result)
-                            // resultにはdoInBackgroundの返り値が入ります。
-                            // ここからAsyncTask処理後の処理を記述します。
-                            Log.d("test PlanCallback", "非同期処理$result")
-
-                            if (result[0].equals("HTTP-OK")){
-
-                                Log.d("test", "PostPlanAsyncTask().execute(${planTitleEditText.text.toString()},${planDetailEditText.text.toString()},${TRANSPORTATION_IMAGE_FLG.toString().replace(" ","").substring(1,14)},${planMoneySpinner.selectedItem.toString()},${planPrefecturesSpinner.selectedItem.toString()},spot_id_a,spot_id_b)")
-                                //Planを投稿
-                                //入力OK　プランIDある
-                                val ppat = PostPlanAsyncTask()
-                                ppat.setOnCallback(object : PostPlanAsyncTask.CallbackPostPlanAsyncTask() {
-                                    override fun callback(result: String) {
-                                        super.callback(result)
-                                        // resultにはdoInBackgroundの返り値が入ります。
-                                        // ここからAsyncTask処理後の処理を記述します。
-                                        Log.d("test PlanCallback", "非同期処理$result")
-
-                                        //完了した関数呼び出し
-                                        completePostAsyncTask()
-                                    }
-                                })
-                                ppat.execute(
-                                        planTitleEditText.text.toString(),
-                                        planDetailEditText.text.toString(),
-                                        TRANSPORTATION_IMAGE_FLG.toString().replace(" ","").substring(1,14),
-                                        planMoneySpinner.selectedItem.toString(),
-                                        planPrefecturesSpinner.selectedItem.toString(),
-                                        //spot_id_a
-                                        "1",
-                                        //spot_id_b
-                                        "2"
-                                )
-
+                                if (result[0] == "HTTP-OK") {
+                                    result.removeAt(0)
+                                    /********************/
+                                    Log.d("test", "PostPlanAsyncTask().execute(${planTitleEditText.text.toString()},${planDetailEditText.text.toString()},${TRANSPORTATION_IMAGE_FLG.toString().replace(" ", "").substring(1, 14)},${planMoneySpinner.selectedItem.toString()},${planPrefecturesSpinner.selectedItem.toString()}")
+                                    //Planを投稿
+                                    //入力OK　プランIDある
+                                    val ppat = PostPlanAsyncTask(result)
+                                    ppat.setOnCallback(object : PostPlanAsyncTask.CallbackPostPlanAsyncTask() {
+                                        override fun callback(result: String) {
+                                            super.callback(result)
+                                            // ここからAsyncTask処理後の処理を記述します。
+                                            Log.d("test PlanCallback", "非同期処理$result")
+                                            //完了した関数呼び出し
+                                            completePostAsyncTask()
+                                        }
+                                    })
+                                    ppat.execute(
+                                            planTitleEditText.text.toString(),
+                                            planDetailEditText.text.toString(),
+                                            TRANSPORTATION_IMAGE_FLG.toString().replace(" ", "").substring(1, 14),
+                                            planMoneySpinner.selectedItem.toString(),
+                                            planPrefecturesSpinner.selectedItem.toString(),
+                                            //spot_id_a
+                                            "1",
+                                            //spot_id_b
+                                            "2"
+                                    )
+                                    /********************/
+                                }
                             }
-                        }
-                    })
-                    gsat.execute()
+                        })
+                        gsat.execute()
+                        /********************/
+                    }
                 }
-            }
-        })
-        psat.execute(spotList)
-
-        /***********************/
-        /*
+            })
+            psat.execute(spotList)
+            /********************/
+            /*
         //Planを投稿
         //入力OK　プランIDある
         Log.d("test", "PostPlanAsyncTask().execute(${planTitleEditText.text.toString()},${planDetailEditText.text.toString()},${TRANSPORTATION_IMAGE_FLG.toString().replace(" ","").substring(1,14)},${planMoneySpinner.selectedItem.toString()},${planPrefecturesSpinner.selectedItem.toString()},spot_id_a,spot_id_b)")
@@ -421,13 +418,82 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         /************************/
 
 */
-        Toast.makeText(this, "投稿", Toast.LENGTH_SHORT).show()
-        spotList.forEach { Log.d("test", "    spotList:${it.title}") }
-        Log.d("test", "spotNameList:$spotNameList")
+        }
     }
 
-    fun completePostAsyncTask(){
-        Log.d("test", "complatePostAsyncTask")
+    private fun checkData() : Boolean{
         Toast.makeText(this, "投稿", Toast.LENGTH_SHORT).show()
+        //spotList.forEach { Log.d("test", "    spotList:${it.title}") }
+        //Log.d("test", "spotNameList:$spotNameList")
+        var checkResult = ""
+
+        if (planTitleEditText.text.toString().replace(" ","").replace("　","")== ""){
+            Log.d("test CHECK" , "title NG")
+            checkResult += "プラン名が入力されていません\n"
+        }
+
+        if (planPrefecturesSpinner.selectedItem.toString() == "投稿する場所の都道府県別を選択してください"){
+            Log.d("test CHECK" , "prefectures NG")
+            checkResult += "都道府県が選択されていません\n"
+        }
+
+        if (spotList.size == 0){
+            Log.d("test CHECK" , "spotList NG")
+            checkResult += "スポットが登録されていません\n"
+        }
+
+        if (TRANSPORTATION_IMAGE_FLG.toString().replace(" ","").substring(1,14) == "0,0,0,0,0,0,0"){
+            Log.d("test CHECK" , "transportation NG")
+            checkResult += "交通手段が選択されていません\n"
+        }
+
+        if (planMoneySpinner.selectedItem.toString() == "プランに掛かる金額を選択してください"){
+            Log.d("test CHECK" , "money NG")
+            checkResult += "金額が選択されていません\n"
+        }
+
+        if (planDetailEditText.text.toString().replace(" ","").replace("　","")== ""){
+            Log.d("test CHECK" , "comment NG")
+            checkResult += "プラン詳細が入力されていません\n"
+        }
+
+        if (checkResult == ""){
+            return true
+        }else{
+            AlertDialog.Builder(this).apply {
+                setMessage(checkResult)
+                setPositiveButton("確認", null)
+                show()
+            }
+            return  false
+        }
+    }
+
+    private fun completePostAsyncTask(){
+        Log.d("test", "complatePostAsyncTask")
+        Toast.makeText(this, "投稿が完了しました", Toast.LENGTH_SHORT).show()
+
+        println("プラン名：${planTitleEditText.text}")
+        println("都道府県：${planPrefecturesSpinner.selectedItem}")
+        spotNameList.removeAt(0)
+        spotNameList.forEach { println("スポット一覧：$it") }
+        print("交通手段：")
+        for (_cnt in 0 until TRANSPORTATION_IMAGE_FLG.size) {
+            if(TRANSPORTATION_IMAGE_FLG[_cnt] == 1) {
+                when(_cnt){
+                    0 -> print("歩き　")
+                    1 -> print("自転車　")
+                    2 -> print("車　")
+                    3 -> print("バス　")
+                    4 -> print("電車　")
+                    5 -> print("飛行機　")
+                    6 -> print("船　")
+                }
+            }
+        }
+        println("")
+        println("金額：${planMoneySpinner.selectedItem}")
+        println("プラン説明：${planDetailEditText.text}")
+        finish()
     }
 }

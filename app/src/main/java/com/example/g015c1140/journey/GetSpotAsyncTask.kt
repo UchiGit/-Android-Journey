@@ -1,24 +1,19 @@
 package com.example.g015c1140.journey
 
 import android.os.AsyncTask
+import android.util.Log
 import org.json.JSONArray
-import org.json.JSONException
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.MalformedURLException
-import java.net.URL
 
 class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
 
-    val spotListCnt:Int = cnt
+    val spotListCnt= cnt
     //callBack用
     var callbackGetSpotAsyncTask: CallbackGetSpotAsyncTask? = null
 
 
     override fun doInBackground(vararg params: String?): String? {
 
+/*
 
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
@@ -69,20 +64,32 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
         }
         //失敗した時はnullやエラーコードなどを返しましょう。
         return null
+        */
+
+        val arrayList = arrayListOf("1","2","3","4")
+        return  arrayList.toString()
     }
 
     //返ってきたデータをビューに反映させる処理はonPostExecuteに書きます。これはメインスレッドです。
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
 
-        if (result == null) return
+        if (result == null){
+            Log.d("test GetSpotTask","return null")
+            return
+        }
 
         val result = JSONArray(result)
-        println("titleList${result}")
+        Log.d("test GetSpotTask","result：$result")
 
         val spotIdList = arrayListOf<String>()
         spotIdList.add("HTTP-OK")
+        /*
         for ( cnt in (result.length() - spotListCnt) until result.length()) {
+            spotIdList.add(result.getString(cnt))
+        }
+        */
+        for ( cnt in 0 until result.length()) {
             spotIdList.add(result.getString(cnt))
         }
 

@@ -21,7 +21,9 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.post.*
+import kotlinx.android.synthetic.main.activity_post.*
+
+
 
 
 
@@ -54,7 +56,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.post)
+        setContentView(R.layout.activity_post)
 
         //タイトル名セット
         title = "プラン投稿"

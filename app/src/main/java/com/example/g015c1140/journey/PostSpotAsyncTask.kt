@@ -2,10 +2,6 @@ package com.example.g015c1140.journey
 
 import android.os.AsyncTask
 import android.util.Log
-import java.io.IOException
-import java.io.OutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
 
@@ -14,7 +10,7 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
 
     //insert
     override fun doInBackground(vararg params: MutableList<SpotData>?): String? {
-
+/*
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
         var result: String? = null
@@ -59,6 +55,7 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
                     // POST送信エラー
                     e.printStackTrace()
                     result = "POST送信エラー：　"
+                    return result
                 } finally {
                     out?.close()
                 }
@@ -82,6 +79,8 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
         }
         return result
         //finallyで接続を切断してあげましょう。
+  */
+        return "HTTP-OK"
     }
 
     //返ってきたデータをビューに反映させる処理はonPostExecuteに書きます。これはメインスレッドです。

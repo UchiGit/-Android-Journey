@@ -23,10 +23,6 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_post.*
 
-
-
-
-
 class PostActivity : AppCompatActivity(), OnMapReadyCallback{
 
     //スポットリスト用アダプター
@@ -326,11 +322,9 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
 
     fun onPostButtonTapped(view: View) {
         //全部がOKな場合
-
         if (checkData()) {
             /********************/
             //spotを投稿
-            //スポットリストがある
             val psat = PostSpotAsyncTask()
             psat.setOnCallback(object : PostSpotAsyncTask.CallbackPostSpotAsyncTask() {
                 override fun callback(result: String) {
@@ -338,7 +332,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
                     // ここからAsyncTask処理後の処理を記述します。
                     Log.d("test SpotCallback", "非同期処理結果：$result")
 
-                    if (result == "HTTP-OK") {
+                    if (result == "RESULT-OK") {
                         /********************/
 
                         //spot取得
@@ -350,20 +344,23 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
                                 // ここからAsyncTask処理後の処理を記述します。
                                 Log.d("test GetSpotCallback", "非同期処理$result")
 
-                                if (result[0] == "HTTP-OK") {
+                                if (result[0] == "RESULT-OK") {
                                     result.removeAt(0)
+
                                     /********************/
-                                    Log.d("test", "PostPlanAsyncTask().execute(${planTitleEditText.text.toString()},${planDetailEditText.text.toString()},${TRANSPORTATION_IMAGE_FLG.toString().replace(" ", "").substring(1, 14)},${planMoneySpinner.selectedItem.toString()},${planPrefecturesSpinner.selectedItem.toString()}")
                                     //Planを投稿
-                                    //入力OK　プランIDある
                                     val ppat = PostPlanAsyncTask(result)
                                     ppat.setOnCallback(object : PostPlanAsyncTask.CallbackPostPlanAsyncTask() {
                                         override fun callback(result: String) {
                                             super.callback(result)
                                             // ここからAsyncTask処理後の処理を記述します。
                                             Log.d("test PlanCallback", "非同期処理$result")
-                                            //完了した関数呼び出し
-                                            completePostAsyncTask()
+                                            if (result == "RESULT-OK") {
+                                                //完了した関数呼び出し
+                                                completePostAsyncTask()
+                                            }else {
+                                                failedAsyncTask()
+                                            }
                                         }
                                     })
                                     ppat.execute(
@@ -371,55 +368,23 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
                                             planDetailEditText.text.toString(),
                                             TRANSPORTATION_IMAGE_FLG.toString().replace(" ", "").substring(1, 14),
                                             planMoneySpinner.selectedItem.toString(),
-                                            planPrefecturesSpinner.selectedItem.toString(),
-                                            //spot_id_a
-                                            "1",
-                                            //spot_id_b
-                                            "2"
+                                            planPrefecturesSpinner.selectedItem.toString()
                                     )
                                     /********************/
+                                }else {
+                                    failedAsyncTask()
                                 }
                             }
                         })
                         gsat.execute()
                         /********************/
+                    }else {
+                        failedAsyncTask()
                     }
                 }
             })
             psat.execute(spotList)
             /********************/
-            /*
-        //Planを投稿
-        //入力OK　プランIDある
-        Log.d("test", "PostPlanAsyncTask().execute(${planTitleEditText.text.toString()},${planDetailEditText.text.toString()},${TRANSPORTATION_IMAGE_FLG.toString().replace(" ","").substring(1,14)},${planMoneySpinner.selectedItem.toString()},${planPrefecturesSpinner.selectedItem.toString()},spot_id_a,spot_id_b)")
-        val ppat = PostPlanAsyncTask()
-        ppat.setOnCallback(object : PostPlanAsyncTask.CallbackPostPlanAsyncTask() {
-            override fun callback(result: String) {
-                super.callback(result)
-                // resultにはdoInBackgroundの返り値が入ります。
-                // ここからAsyncTask処理後の処理を記述します。
-                Log.d("test PlanCallback", "非同期処理$result")
-            }
-        })
-        ppat.execute(
-                planTitleEditText.text.toString(),
-                planDetailEditText.text.toString(),
-                TRANSPORTATION_IMAGE_FLG.toString().replace(" ","").substring(1,14),
-                planMoneySpinner.selectedItem.toString(),
-                planPrefecturesSpinner.selectedItem.toString(),
-                //spot_id_a
-                "1",
-                //spot_id_b
-                "2"
-        )
-
-        /***********************/
-        //spot取得
-        //スポットリストがある
-
-        /************************/
-
-*/
         }
     }
 
@@ -497,5 +462,14 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         println("金額：${planMoneySpinner.selectedItem}")
         println("プラン説明：${planDetailEditText.text}")
         finish()
+    }
+
+    private fun failedAsyncTask(){
+        AlertDialog.Builder(this).apply {
+            setTitle("投稿に失敗しました")
+            setMessage("もう一度実行してください")
+            setPositiveButton("確認", null)
+            show()
+        }
     }
 }

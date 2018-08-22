@@ -7,7 +7,7 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
 
     //callBack用
     var callbackPostPlanAsyncTask: CallbackPostPlanAsyncTask? = null
-    val spotIdList = arrayList
+    val SPOT_ID_LIST = arrayList
 
 
     //insert
@@ -30,7 +30,7 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
             var out: OutputStream? = null
             try {
 
-                for (_cnt in 0 until 6){
+                for (_cnt in 0 until 5){
                     if (params[_cnt] == null){
                         println("POSTTASK 引数異常WRITE：${params[_cnt]}")
                         return null
@@ -43,36 +43,37 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                                 "&plan_title=${params[0]}" +
                                 "&plan_comment=${params[1]}" +
                                 "&transportation=${params[2]}" +
-                                "&price=${params[3]}"+
+                                //"&price=${params[3]}"+
+                                "&price=999999"+
                                 "&area=${params[4]}"
                         ).toByteArray()
                 )
 
-                for (_cnt in 1 until spotIdList.size) {
+                for (_cnt in 0 until SPOT_ID_LIST.size) {
                     var _cntAlpha = when (_cnt) {
-                        5 -> "a"
-                        6 -> "b"
-                        7 -> "c"
-                        8 -> "d"
-                        9 -> "e"
-                        10 -> "f"
-                        11 -> "g"
-                        12 -> "h"
-                        13 -> "i"
-                        14 -> "j"
-                        15 -> "k"
-                        16 -> "l"
-                        17 -> "m"
-                        18 -> "n"
-                        19 -> "o"
-                        20 -> "p"
-                        21 -> "q"
-                        22 -> "r"
-                        23 -> "s"
-                        24 -> "t"
+                        0 -> "a"
+                        1 -> "b"
+                        2 -> "c"
+                        3 -> "d"
+                        4 -> "e"
+                        5 -> "f"
+                        6 -> "g"
+                        7 -> "h"
+                        8 -> "i"
+                        9 -> "j"
+                        10 -> "k"
+                        11 -> "l"
+                        12 -> "m"
+                        13 -> "n"
+                        14 -> "o"
+                        15 -> "p"
+                        16 -> "q"
+                        17 -> "r"
+                        18 -> "s"
+                        19 -> "t"
                         else -> "X"
                     }
-                    out.write(("&spot_id_$_cntAlpha=${spotIdList[_cnt]}").toByteArray())
+                    out.write(("&spot_id_$_cntAlpha=${SPOT_ID_LIST[_cnt]}").toByteArray())
                 }
                 out.flush()
                 Log.d("debug", "flush")
@@ -103,42 +104,7 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
         //失敗した時はnullやエラーコードなどを返しましょう。
         */
 
-        var result =
-                "user_id=${Setting().USER_ID}" +
-                "&plan_title=${params[0]}" +
-                "&plan_comment=${params[1]}" +
-                "&transportation=${params[2]}" +
-                "&price=${params[3]}"+
-                "&area=${params[4]}"
-
-        for (_cnt in 0 until spotIdList.size) {
-            var _cntAlpha = when (_cnt) {
-                0 -> "a"
-                1 -> "b"
-                2 -> "c"
-                3 -> "d"
-                4 -> "e"
-                5 -> "f"
-                6 -> "g"
-                7 -> "h"
-                8 -> "i"
-                9 -> "j"
-                10 -> "k"
-                11 -> "l"
-                12 -> "m"
-                13 -> "n"
-                14 -> "o"
-                15 -> "p"
-                16 -> "q"
-                17 -> "r"
-                18 -> "s"
-                19 -> "t"
-                else -> "X"
-            }
-            result += "&spot_id_$_cntAlpha=${spotIdList[_cnt]}"
-        }
-            Log.d("test PostPlan", "result: $result")
-            return "HTTP-OK"
+        return "HTTP-OK"
     }
 
     //返ってきたデータをビューに反映させる処理はonPostExecuteに書きます。これはメインスレッドです。
@@ -146,10 +112,6 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
         super.onPostExecute(result)
 
         Log.d("test PlanSpot","onPostEx")
-        callbackPostPlanAsyncTask!!.callback(result!!)
-        return
-
-    /*
         when(result){
             "HTTP-OK" -> {
                 Log.d("test PostSpot","HTTP-OK")
@@ -163,7 +125,6 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                 return
             }
         }
-*/
     }
 
     fun setOnCallback(cb: CallbackPostPlanAsyncTask) {

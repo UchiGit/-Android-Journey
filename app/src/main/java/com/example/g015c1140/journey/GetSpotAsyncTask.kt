@@ -3,23 +3,26 @@ package com.example.g015c1140.journey
 import android.os.AsyncTask
 import android.util.Log
 import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.MalformedURLException
+import java.net.URL
 
 class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
+    val SPOT_LIST_CNT = cnt
 
-    val spotListCnt= cnt
     //callBack用
     var callbackGetSpotAsyncTask: CallbackGetSpotAsyncTask? = null
-
+    private lateinit var result:String
 
     override fun doInBackground(vararg params: String?): String? {
 
-/*
-
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
-        //var reader: BufferedReader? = null
-        // val buffer: StringBuffer
-        var jsonArray: JSONArray
 
         try {
             val url = URL(Setting().SPOT_GET_URL)
@@ -33,22 +36,23 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
             for (line in br.readLines()) {
                 line.run { sb.append(line) }
             }
+            br.close()
 
-            val spotIdList = ArrayList<String>()
+            var spotIdList = ArrayList<String>()
 
             try {
-                jsonArray = JSONArray(sb.toString())
+                val jsonObject = JSONObject(sb.toString())
+                val jsonArray = jsonObject.getJSONArray("record")
 
+                Log.d("test GSAT", "${jsonArray.length()}             ${sb.length}")
                 for (i in 0 until jsonArray.length()) {
-                    println("array.getJSONObject(i):${jsonArray.getJSONObject(i)}")
+                    Log.d("test","array.getJSONObject(i): ${jsonArray.getJSONObject(i)}")
                     spotIdList.add(jsonArray.getJSONObject(i).getString("spot_id"))
                 }
+                result =  spotIdList.toString()
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
-            br.close()
-
-            return spotIdList.toString()
 
             //ここから下は、接続エラーとかJSONのエラーとかで失敗した時にエラーを処理する為のものです。
         } catch (e: MalformedURLException) {
@@ -63,11 +67,7 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
             connection?.disconnect()
         }
         //失敗した時はnullやエラーコードなどを返しましょう。
-        return null
-        */
-
-        val arrayList = arrayListOf("1","2","3","4")
-        return  arrayList.toString()
+        return result
     }
 
     //返ってきたデータをビューに反映させる処理はonPostExecuteに書きます。これはメインスレッドです。
@@ -76,6 +76,7 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
 
         if (result == null){
             Log.d("test GetSpotTask","return null")
+            callbackGetSpotAsyncTask!!.callback(arrayListOf("RESULT-NG"))
             return
         }
 
@@ -83,18 +84,13 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
         Log.d("test GetSpotTask","result：$result")
 
         val spotIdList = arrayListOf<String>()
-        spotIdList.add("HTTP-OK")
-        /*
-        for ( cnt in (result.length() - spotListCnt) until result.length()) {
-            spotIdList.add(result.getString(cnt))
-        }
-        */
-        for ( cnt in 0 until result.length()) {
+        spotIdList.add("RESULT-OK")
+
+        for ( cnt in (result.length() - SPOT_LIST_CNT) until result.length()) {
             spotIdList.add(result.getString(cnt))
         }
 
         callbackGetSpotAsyncTask!!.callback(spotIdList)
-        //return spotIdList
     }
 
     fun setOnCallback(cb: CallbackGetSpotAsyncTask) {

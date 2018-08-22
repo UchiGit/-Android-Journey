@@ -2,6 +2,10 @@ package com.example.g015c1140.journey
 
 import android.os.AsyncTask
 import android.util.Log
+import java.io.IOException
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String, String>() {
 
@@ -12,7 +16,7 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
 
     //insert
     override fun doInBackground(vararg params: String?): String? {
-/*
+
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
         var result: String? = null
@@ -102,9 +106,6 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
         return result
         //finallyで接続を切断してあげましょう。
         //失敗した時はnullやエラーコードなどを返しましょう。
-        */
-
-        return "HTTP-OK"
     }
 
     //返ってきたデータをビューに反映させる処理はonPostExecuteに書きます。これはメインスレッドです。

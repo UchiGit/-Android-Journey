@@ -3,6 +3,14 @@ package com.example.g015c1140.journey
 import android.os.AsyncTask
 import android.util.Log
 import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.MalformedURLException
+import java.net.URL
 
 class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
     val SPOT_LIST_CNT = cnt
@@ -12,7 +20,7 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
     private lateinit var result:String
 
     override fun doInBackground(vararg params: String?): String? {
-/*
+
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
 
@@ -60,8 +68,6 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
         }
         //失敗した時はnullやエラーコードなどを返しましょう。
         return result
-*/
-        return arrayListOf("1","2","3","4","5","7","8","9","10","11").toString()
     }
 
     //返ってきたデータをビューに反映させる処理はonPostExecuteに書きます。これはメインスレッドです。
@@ -80,7 +86,7 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
         val spotIdList = arrayListOf<String>()
         spotIdList.add("RESULT-OK")
 
-        for ( cnt in (result.length() - 5/*POT_LIST_CNT*/) until result.length()) {
+        for ( cnt in (result.length() - SPOT_LIST_CNT) until result.length()) {
             spotIdList.add(result.getString(cnt))
         }
 

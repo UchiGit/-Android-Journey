@@ -17,13 +17,14 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
 
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
-        var result: String? = null
+        var postResult: String? = null
+        var httpResult:String? = null
         val url = URL(Setting().SPOT_POST_URL)
 
         val spotList = params[0]
         if (spotList == null) {
             println("PostSpot 引数異常URL：$params[0]")
-            return null
+            return "引数異常　URL"
         }
 
         spotList.forEach {
@@ -40,7 +41,7 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
                     val spotList = params[0]
                     if (spotList == null) {
                         println("PostSpot 引数異常URL：$params[0]")
-                        return null
+                        return "引数異常　params"
                     }
 
                     out.write(("user_id=${Setting().USER_ID}" +
@@ -54,23 +55,20 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
                     )
                     out.flush()
                     Log.d("test", "flush")
+                    postResult = "SPOT送信OK"
 
                 } catch (e: IOException) {
                     // POST送信エラー
                     e.printStackTrace()
-                    result = "POST送信エラー：　"
-                    return result
+                    postResult = "SPOT送信エラー：　"
                 } finally {
                     out?.close()
                 }
 
                 val status = connection!!.responseCode
                 when (status) {
-                    HttpURLConnection.HTTP_OK -> result = "HTTP-OK"
-                    else -> {
-                        result += "status=$status"
-                        return result
-                    }
+                    HttpURLConnection.HTTP_OK -> httpResult = "HTTP-OK"
+                    else -> httpResult = "status=$status"
                 }
 
             } catch (e: IOException) {
@@ -81,7 +79,7 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
                 }
             }
         }
-        return result
+        return "$httpResult:$postResult"
         //finallyで接続を切断してあげましょう。
     }
 
@@ -89,9 +87,9 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
 
-        Log.d("test PostSpot","onPostEx")
+        Log.d("test PostSpot","onPostEx: $result")
         when(result){
-            "HTTP-OK" -> {
+            "HTTP-OK:SPOT送信OK" -> {
                 Log.d("test PostSpot","HTTP-OK")
                 callbackPostSpotAsyncTask!!.callback("RESULT-OK")
                 return

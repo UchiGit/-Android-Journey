@@ -17,7 +17,7 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
 
     //callBack用
     var callbackGetSpotAsyncTask: CallbackGetSpotAsyncTask? = null
-    private lateinit var result:String
+    private var result:String? = null
 
     override fun doInBackground(vararg params: String?): String? {
 

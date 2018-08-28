@@ -10,8 +10,8 @@ import java.net.URL
 class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String, String>() {
 
     //callBack用
-    var callbackPostPlanAsyncTask: CallbackPostPlanAsyncTask? = null
-    val SPOT_ID_LIST = arrayList
+    private var callbackPostPlanAsyncTask: CallbackPostPlanAsyncTask? = null
+    private val SPOT_ID_LIST = arrayList
 
 
     //insert
@@ -19,7 +19,8 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
 
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
-        var result: String? = null
+        var postResult: String? = null
+        var httpResult:String? = null
 
         try {
             val url =  URL(Setting().PLAN_POST_URL)
@@ -37,7 +38,7 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                 for (_cnt in 0 until 5){
                     if (params[_cnt] == null){
                         println("POSTTASK 引数異常WRITE：${params[_cnt]}")
-                        return null
+                        return "POSTTASK 引数異常"
                     }
                 }
 
@@ -47,14 +48,13 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                                 "&plan_title=${params[0]}" +
                                 "&plan_comment=${params[1]}" +
                                 "&transportation=${params[2]}" +
-                                //"&price=${params[3]}"+
-                                "&price=999999"+
+                                "&price=${params[3]}"+
                                 "&area=${params[4]}"
                         ).toByteArray()
                 )
 
                 for (_cnt in 0 until SPOT_ID_LIST.size) {
-                    var _cntAlpha = when (_cnt) {
+                    val _cntAlpha = when (_cnt) {
                         0 -> "a"
                         1 -> "b"
                         2 -> "c"
@@ -81,19 +81,20 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                 }
                 out.flush()
                 Log.d("debug", "flush")
+                postResult = "PLAN送信OK"
 
             } catch (e: IOException) {
                 // POST送信エラー
                 e.printStackTrace()
-                result = "POST送信エラー:　"
+                postResult = "PLAN送信エラー"
             } finally {
                 out?.close()
             }
 
             val status = connection.responseCode
             when (status) {
-                HttpURLConnection.HTTP_OK -> result = "HTTP-OK"
-                else -> result += "status=$status"
+                HttpURLConnection.HTTP_OK -> httpResult = "HTTP-OK"
+                else -> httpResult = "status=$status"
             }
 
         } catch (e: IOException) {
@@ -103,7 +104,7 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                 connection.disconnect()
             }
         }
-        return result
+        return "$httpResult:$postResult"
         //finallyで接続を切断してあげましょう。
         //失敗した時はnullやエラーコードなどを返しましょう。
     }
@@ -112,9 +113,9 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
 
-        Log.d("test PlanSpot","onPostEx")
+        Log.d("test PlanSpot","onPostEx: $result")
         when(result){
-            "HTTP-OK" -> {
+            "HTTP-OK:PLAN送信OK" -> {
                 Log.d("test PostSpot","HTTP-OK")
                 callbackPostPlanAsyncTask!!.callback("RESULT-OK")
                 return

@@ -96,7 +96,7 @@ class SelectSpotActivity : AppCompatActivity() {
                 spotList.removeAt(position)
                 Log.d("test", newSpotNameList.toString())
             /****************/
-            spotCnt++
+                spotCnt++
             }else{
                 Toast.makeText(this, "スポットは最大20件までです", Toast.LENGTH_SHORT).show()
             }
@@ -124,8 +124,13 @@ class SelectSpotActivity : AppCompatActivity() {
 
         val searchButton = findViewById<Button>(R.id.searchButton)
         searchButton.setOnClickListener {
-            val intent = Intent(application, PlacePicker::class.java)
-            startActivityForResult(intent, RESULT_SUBACTIVITY)
+            if (spotCnt < 20) {
+               val intent = Intent(application, PlacePicker::class.java)
+                startActivityForResult(intent, RESULT_SUBACTIVITY)
+                spotCnt++
+            }else{
+                Toast.makeText(this, "スポットは最大20件までです", Toast.LENGTH_SHORT).show()
+            }
         }
 
         /************/

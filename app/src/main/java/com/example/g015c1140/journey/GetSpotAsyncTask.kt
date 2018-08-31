@@ -86,8 +86,8 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
         val spotIdList = arrayListOf<String>()
         spotIdList.add("RESULT-OK")
 
-        for ( cnt in (result.length() - SPOT_LIST_CNT) until result.length()) {
-            spotIdList.add(result.getString(cnt))
+        for ( backCnt in (result.length() - SPOT_LIST_CNT) until result.length()) {
+            spotIdList.add(result.getString(backCnt))
         }
 
         callbackGetSpotAsyncTask!!.callback(spotIdList)

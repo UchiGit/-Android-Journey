@@ -26,27 +26,27 @@ import kotlinx.android.synthetic.main.activity_post.*
 class PostActivity : AppCompatActivity(), OnMapReadyCallback{
 
     //スポットリスト用アダプター
-    lateinit var spotListAdapter: ArrayAdapter<String>
+    private lateinit var spotListAdapter: ArrayAdapter<String>
 
     //スポット名リスト用データ
-    lateinit var spotNameList:MutableList<String>
+    private lateinit var spotNameList:MutableList<String>
 
     //交通手段ボタン用
-    lateinit var transportationImageButton: MutableList<ImageButton>
+    private lateinit var transportationImageButton: MutableList<ImageButton>
 
     //交通手段ボタンフラグ用
-    val TRANSPORTATION_IMAGE_FLG = mutableListOf(0,0,0,0,0,0,0)
+    private val TRANSPORTATION_IMAGE_FLG = mutableListOf(0,0,0,0,0,0,0)
 
     //受け渡しスポットリスト用
     var spotList = mutableListOf<SpotData>()
 
     /******************/
     //SelectSpotActivity用
-    val RESULT_CODE = 1123
+    private val RESULT_CODE = 1123
 
     //MapPinAdd用
-    lateinit var mMap:GoogleMap
-    val MARKER_LIST = mutableListOf<Marker>()
+    private lateinit var mMap:GoogleMap
+    private val MARKER_LIST = mutableListOf<Marker>()
     /******************/
 
 
@@ -61,14 +61,14 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         transportationImageButton = mutableListOf(findViewById(R.id.walkImageButton), findViewById(R.id.bicycleImageButton), findViewById(R.id.carImageButton), findViewById(R.id.busImageButton), findViewById(R.id.trainImageButton), findViewById(R.id.airplaneImageButton), findViewById(R.id.boatImageButton))
 
         //ツールバーセット
-        var toolbar = toolbar
+        val toolbar = toolbar
         setSupportActionBar(toolbar)
         //戻るボタンセット
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
 
         //ボトムバー設定
-        var bottomavigation: BottomNavigationView = findViewById(R.id.navigation)
+        val bottomavigation: BottomNavigationView = findViewById(R.id.navigation)
         // BottomNavigationViewHelperでアイテムのサイズ、アニメーションを調整
         AdjustmentBottomNavigation().disableShiftMode(bottomavigation)
         navigation.setOnNavigationItemSelectedListener(ON_NAVIGATION_ITEM_SELECTED_LISTENER)
@@ -86,7 +86,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         spotListView.adapter = spotListAdapter
 
         // 項目をタップしたときの処理
-        spotListView.setOnItemClickListener {parent, view, position, id ->
+        spotListView.setOnItemClickListener { _, _, position, _ ->
             // 一番上の項目をタップしたら
             if (position == 0) {
                 if (spotList.size < 20) {
@@ -100,7 +100,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         }
 
         // 項目を長押ししたときの処理
-        spotListView.setOnItemLongClickListener { parent, view, position, id ->
+        spotListView.setOnItemLongClickListener { _, _, position, _ ->
 
             // 一番下の項目以外は長押しで削除
             when(position){
@@ -138,7 +138,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
 
-        Log.d("test" , "onResult   resultCode${resultCode}        requestCode$requestCode   Intent$intent")
+        Log.d("test" , "onResult   resultCode$resultCode        requestCode$requestCode   Intent$intent")
 
         if(resultCode == RESULT_OK && requestCode == RESULT_CODE && intent != null){
 
@@ -169,7 +169,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
         //val skyTree = LatLng(35.710063, 139.8107)
         //mMap.addMarker(MarkerOptions().position(skyTree).title("東京スカイツリー"))
 
-        var cameraPosition: CameraPosition = CameraPosition.Builder()
+        val cameraPosition: CameraPosition = CameraPosition.Builder()
                 .target(LatLng(35.710063, 139.8107))
                 .zoom(15f)
                 .build()
@@ -189,7 +189,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
                 var cnt = 1
                 spotList.forEach {
                     //Pin追加
-                    var marker = mMap.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title("$cnt"))
+                    val marker = mMap.addMarker(MarkerOptions().position(LatLng(it.latitude, it.longitude)).title("$cnt"))
                     cnt++
                     //情報ウィンドウ表示
                     marker.showInfoWindow()
@@ -197,7 +197,7 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
                 }
 
                 //camera移動
-                var cameraPosition
+                val cameraPosition
                         : CameraPosition = CameraPosition.Builder()
                         .target(LatLng(spotList[spotList.size - 1].latitude, spotList[spotList.size - 1].longitude))
                         .zoom(17f)
@@ -424,15 +424,15 @@ class PostActivity : AppCompatActivity(), OnMapReadyCallback{
             checkResult += "プラン詳細が入力されていません\n"
         }
 
-        if (checkResult == ""){
-            return true
+        return if (checkResult == ""){
+            true
         }else{
             AlertDialog.Builder(this).apply {
                 setMessage(checkResult)
                 setPositiveButton("確認", null)
                 show()
             }
-            return  false
+            false
         }
     }
 

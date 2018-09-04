@@ -13,10 +13,10 @@ import java.net.MalformedURLException
 import java.net.URL
 
 class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
-    val SPOT_LIST_CNT = cnt
+    private val SPOT_LIST_CNT = cnt
 
     //callBack用
-    var callbackGetSpotAsyncTask: CallbackGetSpotAsyncTask? = null
+    private var callbackGetSpotAsyncTask: CallbackGetSpotAsyncTask? = null
     private var result:String? = null
 
     override fun doInBackground(vararg params: String?): String? {
@@ -38,7 +38,7 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
             }
             br.close()
 
-            var spotIdList = ArrayList<String>()
+            val spotIdList = ArrayList<String>()
 
             try {
                 val jsonObject = JSONObject(sb.toString())
@@ -80,14 +80,14 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
             return
         }
 
-        val result = JSONArray(result)
+        val resultJSONArray = JSONArray(result)
         Log.d("test GetSpotTask","result：$result")
 
         val spotIdList = arrayListOf<String>()
         spotIdList.add("RESULT-OK")
 
-        for ( backCnt in (result.length() - SPOT_LIST_CNT) until result.length()) {
-            spotIdList.add(result.getString(backCnt))
+        for ( backCnt in (resultJSONArray.length() - SPOT_LIST_CNT) until resultJSONArray.length()) {
+            spotIdList.add(resultJSONArray.getString(backCnt))
         }
 
         callbackGetSpotAsyncTask!!.callback(spotIdList)

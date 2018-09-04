@@ -10,7 +10,7 @@ import java.net.URL
 class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
 
     //callBack用
-    var callbackPostSpotAsyncTask: CallbackPostSpotAsyncTask? = null
+    private var callbackPostSpotAsyncTask: CallbackPostSpotAsyncTask? = null
 
     //insert
     override fun doInBackground(vararg params: MutableList<SpotData>?): String? {
@@ -38,11 +38,11 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
                 var out: OutputStream? = null
                 try {
                     out = connection!!.outputStream
-                    val spotList = params[0]
-                    if (spotList == null) {
-                        println("PostSpot 引数異常URL：$params[0]")
-                        return "引数異常　params"
-                    }
+//                    val spotList = params[0]
+//                    if (spotList == null) {
+//                        println("PostSpot 引数異常URL：$params[0]")
+//                        return "引数異常　params"
+//                    }
 
                     out.write(("user_id=${Setting().USER_ID}" +
                             "&spot_title=${it.title}" +
@@ -66,9 +66,9 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
                 }
 
                 val status = connection!!.responseCode
-                when (status) {
-                    HttpURLConnection.HTTP_OK -> httpResult = "HTTP-OK"
-                    else -> httpResult = "status=$status"
+                httpResult = when (status) {
+                    HttpURLConnection.HTTP_OK -> "HTTP-OK"
+                    else -> "status=$status"
                 }
 
             } catch (e: IOException) {

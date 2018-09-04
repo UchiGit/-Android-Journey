@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.activity_detail_spot.*
 
 class DetailSpotActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    lateinit var spot: SpotData
+    private lateinit var spot: SpotData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,9 +35,9 @@ class DetailSpotActivity : AppCompatActivity(), OnMapReadyCallback {
         supportActionBar!!.setHomeButtonEnabled(true)
 
         //ボトムバー設定
-        var bottomavigation: BottomNavigationView = findViewById(R.id.navigation)
+        val bottomNavigation: BottomNavigationView = findViewById(R.id.navigation)
         // BottomNavigationViewHelperでアイテムのサイズ、アニメーションを調整
-        AdjustmentBottomNavigation().disableShiftMode(bottomavigation)
+        AdjustmentBottomNavigation().disableShiftMode(bottomNavigation)
         navigation.setOnNavigationItemSelectedListener( ON_NAVIGATION_ITEM_SELECTED_LISTENER)
 
         //Map呼び出し

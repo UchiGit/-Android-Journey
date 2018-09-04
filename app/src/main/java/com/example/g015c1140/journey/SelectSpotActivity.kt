@@ -1,5 +1,6 @@
 package com.example.g015c1140.journey
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -23,35 +24,36 @@ import kotlin.collections.ArrayList
 class SelectSpotActivity : AppCompatActivity() {
 
     //インテントで来たリスト用
-    var spotList = arrayListOf<SpotData>()
+    private var spotList = arrayListOf<SpotData>()
 
     //インテントするリスト用
-    var newSpotList = arrayListOf<SpotData>()
+    private var newSpotList = arrayListOf<SpotData>()
 
     //spotListから生成する個人が追加した表示用のスポット名用
-    val spotNameList = ArrayList<String>()
+    private val spotNameList = ArrayList<String>()
 
     //選択したリスト項目の名前を表示するリスト用
-    val newSpotNameList = ArrayList<String>()
+    private val newSpotNameList = ArrayList<String>()
 
     //登録した用
-    lateinit var userSpotListView : ListView
+    private lateinit var userSpotListView : ListView
 
     //選択した用
-    lateinit var selectSpotListView : ListView
+    private lateinit var selectSpotListView : ListView
 
     /****************/// test you
-    lateinit var userSpotAdapter: ArrayAdapter<String>
+    private lateinit var userSpotAdapter: ArrayAdapter<String>
     /******************/
 
     /****************/
     //インテント用スポットカウント
-    var spotCnt = 0
+    private var spotCnt = 0
     /****************/
     var nowSort = "昇順"
 
-    val RESULT_SUBACTIVITY = 1000
+    private val RESULT_SUBACTIVITY = 1000
 
+    @SuppressLint("SimpleDateFormat")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_select_spot)
@@ -71,7 +73,7 @@ class SelectSpotActivity : AppCompatActivity() {
 
         // テストのためuserSpotAdapterなどのvalなどの宣言をクラス変数に移動した
         //val
-        userSpotAdapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, spotNameList)
+        userSpotAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, spotNameList)
         userSpotListView = findViewById(R.id.userSpotList)
         userSpotListView.adapter = userSpotAdapter
 
@@ -90,7 +92,7 @@ class SelectSpotActivity : AppCompatActivity() {
                 val item = list.getItemAtPosition(position) as String
                 val adapter = list.adapter as ArrayAdapter<String>
                 selectSpotAdapter.add(userSpotAdapter.getItem(position))
-                newSpotList.add(spotList.get(position))
+                newSpotList.add(spotList[position])
                 selectSpotListView.adapter = selectSpotAdapter
                 adapter.remove(item)
                 spotList.removeAt(position)
@@ -144,9 +146,9 @@ class SelectSpotActivity : AppCompatActivity() {
 
         /************/
         //ボトムバー設定
-        var bottomavigation: BottomNavigationView = findViewById(R.id.navigation)
+        val bottomNavigation: BottomNavigationView = findViewById(R.id.navigation)
         // BottomNavigationViewHelperでアイテムのサイズ、アニメーションを調整
-        AdjustmentBottomNavigation().disableShiftMode(bottomavigation)
+        AdjustmentBottomNavigation().disableShiftMode(bottomNavigation)
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         /****************/
 

@@ -53,7 +53,7 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                         ).toByteArray()
                 )
 
-                for (_cnt in 0 until SPOT_ID_LIST.size) {
+/*                for (_cnt in 0 until SPOT_ID_LIST.size) {
                     val _cntAlpha = when (_cnt) {
                         0 -> "a"
                         1 -> "b"
@@ -78,7 +78,15 @@ class PostPlanAsyncTask(arrayList: ArrayList<String>): AsyncTask<String, String,
                         else -> "X"
                     }
                     out.write(("&spot_id_$_cntAlpha=${SPOT_ID_LIST[_cnt]}").toByteArray())
+                }*/
+                var charArray:CharArray
+                val startValue  = 97
+                for (_cnt in startValue until (startValue + SPOT_ID_LIST.size)) {
+                    charArray = Character.toChars(_cnt)
+                    out.write(("&spot_id_${charArray[0]}=${SPOT_ID_LIST[_cnt-startValue]}").toByteArray())
+                    println("&spot_id_${charArray[0]}=${SPOT_ID_LIST[_cnt-startValue]}")
                 }
+
                 out.flush()
                 Log.d("debug", "flush")
                 postResult = "PLAN送信OK"

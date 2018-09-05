@@ -21,7 +21,7 @@ class GetSpotAsyncTask(cnt: Int): AsyncTask<String, String, String>() {
 
     override fun doInBackground(vararg params: String?): String? {
 
-        //お腹すいたし打ちたい
+        //かえりたーい
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
 

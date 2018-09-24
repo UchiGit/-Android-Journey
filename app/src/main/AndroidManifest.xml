@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.g015c1140.journey">
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -13,7 +16,7 @@
         <!-- ここにAPIキーを追加する -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR KEY"/>
+            android:value="AIzaSyBYjuaOu04drUxDrXtzAwBJuM3beRWVx3k" />
 
         <activity android:name=".StartActivity">
             <intent-filter>
@@ -22,17 +25,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".PostActivity"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustPan|stateAlwaysHidden">
-        </activity>
-
+            android:windowSoftInputMode="adjustPan|stateAlwaysHidden"></activity>
         <activity android:name=".SelectSpotActivity" />
         <activity android:name=".PlacePicker" />
-        <activity android:name=".DetailSpotActivity"/>
-
+        <activity android:name=".DetailSpotActivity" />
+        <activity android:name=".PutSpotActivity"></activity>
     </application>
 
 </manifest>

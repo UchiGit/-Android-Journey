@@ -13,7 +13,8 @@ class StartActivity : AppCompatActivity() {
     }
 
     fun spotAddButtonTapped(v:View){
-        startActivity(Intent(this, DetailSpotActivity::class.java))
+        //startActivity(Intent(this, DetailSpotActivity::class.java))
+        startActivity(Intent(this, PutSpotActivity::class.java))
     }
 
     fun spotListButtonTapped(v:View){

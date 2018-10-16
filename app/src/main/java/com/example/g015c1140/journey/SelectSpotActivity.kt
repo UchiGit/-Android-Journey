@@ -12,6 +12,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import android.widget.AdapterView.OnItemSelectedListener
+import io.realm.Realm
+import io.realm.RealmConfiguration
 import kotlinx.android.synthetic.main.activity_select_spot.*
 import java.lang.Double.parseDouble
 import java.text.SimpleDateFormat
@@ -22,6 +24,10 @@ import kotlin.collections.ArrayList
 //import sun.util.locale.provider.LocaleProviderAdapter.getAdapter
 
 class SelectSpotActivity : AppCompatActivity() {
+
+    private lateinit var mRealm : Realm
+    var dataList = ArrayList<String>()
+    var spotDataList = ArrayList<TestRea>()
 
     //インテントで来たリスト用
     private var spotList = arrayListOf<SpotData>()
@@ -57,7 +63,33 @@ class SelectSpotActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_select_spot)
-        //spotList = intent.getSerializableExtra("SPOTDATA") as ArrayList<SpotData>
+
+        Realm.init(this)
+        val realmConfig = RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .build()
+        mRealm = Realm.getInstance(realmConfig)
+
+        var realmList = mRealm.where(TestRea::class.java).findAll()
+
+        val df = SimpleDateFormat("yyyy/MM/dd hh:MM")
+
+        for (_sd in realmList){
+            spotList.add(SpotData(_sd.id,_sd.name,_sd.latitude,_sd.longitude,_sd.comment,_sd.image_A,_sd.image_B,_sd.image_C,_sd.datetime))
+            spotNameList.add(_sd.name + "\n" + df.format(_sd.datetime))
+        }
+
+        userSpotListView = findViewById(R.id.userSpotList) as ListView
+        userSpotAdapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, spotNameList)
+        userSpotListView.adapter = userSpotAdapter
+
+        /*userSpotListView.setOnItemClickListener {parent, view, position, id ->
+
+            val intent = Intent(this, DetailSpotActivity::class.java)
+            var tappedSpot = SpotData(spotDataList[position]!!.id,spotDataList[position]!!.name,spotDataList[position]!!.latitude,spotDataList[position]!!.longitude,spotDataList[position]!!.comment,spotDataList[position]!!.image_A,spotDataList[position]!!.image_B,spotDataList[position]!!.image_C,spotDataList[position]!!.datetime)
+            intent.putExtra("SPOT",tappedSpot)
+            startActivity(intent)
+        }*/
 
         /****************/
         spotCnt = intent.getIntExtra("SPOTCNT",100)
@@ -65,9 +97,7 @@ class SelectSpotActivity : AppCompatActivity() {
 
         val spinner = findViewById<Spinner>(R.id.sort)
 
-        val df = SimpleDateFormat("yyyy/MM/dd ")
-
-        for(_spotList in spotList) {
+/*        for(_spotList in spotList) {
             spotNameList.add(df.format(_spotList.dateTime) + "：" + _spotList.title)
         }
 
@@ -75,7 +105,7 @@ class SelectSpotActivity : AppCompatActivity() {
         //val
         userSpotAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, spotNameList)
         userSpotListView = findViewById(R.id.userSpotList)
-        userSpotListView.adapter = userSpotAdapter
+        userSpotListView.adapter = userSpotAdapter*/
 
         val selectSpotAdapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, newSpotNameList)
         selectSpotListView = findViewById(R.id.selectSpotList)
@@ -91,7 +121,7 @@ class SelectSpotActivity : AppCompatActivity() {
                 val list = parent as ListView
                 val item = list.getItemAtPosition(position) as String
                 val adapter = list.adapter as ArrayAdapter<String>
-                selectSpotAdapter.add(userSpotAdapter.getItem(position))
+                selectSpotAdapter.add((spotCnt + 1).toString() + "．" + userSpotAdapter.getItem(position))
                 newSpotList.add(spotList[position])
                 selectSpotListView.adapter = selectSpotAdapter
                 adapter.remove(item)
@@ -129,7 +159,6 @@ class SelectSpotActivity : AppCompatActivity() {
             if (spotCnt < 20) {
                val intent = Intent(application, PlacePicker::class.java)
                 startActivityForResult(intent, RESULT_SUBACTIVITY)
-                spotCnt++
             }else{
                 Toast.makeText(this, "スポットは最大20件までです", Toast.LENGTH_SHORT).show()
             }
@@ -189,7 +218,7 @@ class SelectSpotActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.navigation_home -> {
                 //spotNameEditText.setText(R.string.title_home)
-                spotList.add(SpotData("tmp${spotList.size}",1.0,2.0,"","","","",Date()))
+                spotList.add(SpotData("tokenID","tmp${spotList.size}",1.0,2.0,"","","","",Date()))
                 spotNameList.add(spotList[spotList.size -1].title)
                 userSpotAdapter.notifyDataSetChanged()
                 return@OnNavigationItemSelectedListener true
@@ -223,10 +252,12 @@ class SelectSpotActivity : AppCompatActivity() {
                 newSpotNameList.add(_newSpotList.name)
             }*/
             val selectSpotAdapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,newSpotNameList)
-            selectSpotAdapter.add(intent.getStringExtra("NAME"))
-            newSpotList.add(SpotData(intent.getStringExtra("NAME"),parseDouble(intent.getStringExtra("LatLngX")),parseDouble(intent.getStringExtra("LatLngY")),"","","","",Date()))
+            selectSpotAdapter.add((spotCnt + 1).toString() + "．" + intent.getStringExtra("NAME"))
+            newSpotList.add(SpotData("tokenID",intent.getStringExtra("NAME"),parseDouble(intent.getStringExtra("LatLngX")),parseDouble(intent.getStringExtra("LatLngY")),"","","","",Date()))
 
             selectSpotListView.adapter = selectSpotAdapter
+
+            spotCnt++
         }
     }
 

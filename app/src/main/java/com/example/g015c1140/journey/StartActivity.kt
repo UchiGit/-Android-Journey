@@ -18,7 +18,7 @@ class StartActivity : AppCompatActivity() {
     }
 
     fun spotListButtonTapped(v:View){
-       //startActivity(Intent(this, SpotListActivity::class.java))
+       startActivity(Intent(this, SpotListActivity::class.java))
     }
 
     fun postButtonTapped(v:View){

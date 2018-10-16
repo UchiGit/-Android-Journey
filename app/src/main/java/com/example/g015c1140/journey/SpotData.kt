@@ -4,6 +4,7 @@ import java.io.Serializable
 import java.util.*
 
 data class SpotData(
+        val id : String,
         val title : String,
         val latitude : Double,
         val longitude : Double,

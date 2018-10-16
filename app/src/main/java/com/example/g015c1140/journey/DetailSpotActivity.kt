@@ -1,5 +1,6 @@
 package com.example.g015c1140.journey
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
@@ -14,7 +15,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_detail_spot.*
-
+import android.graphics.BitmapFactory
+import android.widget.ImageView
 
 
 class DetailSpotActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -46,7 +48,23 @@ class DetailSpotActivity : AppCompatActivity(), OnMapReadyCallback {
 
         spotNameTextView.text = spot.title
         Log.d("test", "com ${spot.comment}")
-        spotDetailTextView.text = spot.comment
+        commentTextView.text = spot.comment
+        val imageView1 = findViewById(R.id.imageView1) as ImageView
+        val imageView2 = findViewById(R.id.imageView2) as ImageView
+        val imageView3 = findViewById(R.id.imageView3) as ImageView
+
+        if (!spot.image_A.equals("")){
+            val bmImg = BitmapFactory.decodeFile(spot.image_A)
+            imageView1.setImageBitmap(bmImg)
+        }
+        if (!spot.image_B.equals("")){
+            val bmImg = BitmapFactory.decodeFile(spot.image_B)
+            imageView2.setImageBitmap(bmImg)
+        }
+        if (!spot.image_C.equals("")){
+            val bmImg = BitmapFactory.decodeFile(spot.image_C)
+            imageView3.setImageBitmap(bmImg)
+        }
 
     }
 
@@ -63,7 +81,10 @@ class DetailSpotActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onOptionsItemSelected(item: MenuItem?) = when(item!!.itemId) {
         R.id.saveButton ->{
-            Toast.makeText(this, "編集ボタン", Toast.LENGTH_LONG).show()
+            val intent = Intent(this, PutSpotActivity::class.java)
+            intent.putExtra("SPOT",spot)
+            startActivity(intent)
+            //Toast.makeText(this, "編集ボタン", Toast.LENGTH_LONG).show()
             true
         }
         //戻るボタンタップ時

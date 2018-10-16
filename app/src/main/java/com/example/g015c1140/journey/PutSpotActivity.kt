@@ -1,21 +1,31 @@
 package com.example.g015c1140.journey
 
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
+import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.media.MediaScannerConnection
+import android.net.Uri
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
+import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
@@ -23,7 +33,10 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.SupportMapFragment;
 import io.realm.Realm
+import io.realm.RealmConfiguration
+//import io.realm.kotlin.createObject
 import org.json.JSONArray
 import org.json.JSONException
 import java.io.BufferedReader
@@ -33,6 +46,7 @@ import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
+import java.text.SimpleDateFormat
 
 
 class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
@@ -40,24 +54,39 @@ class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMar
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
+    private val m_uri : Uri? = null
+    private var tappedImageNum : Int = 0
 
     //data class spotData(val name : String, val latitude : Double, val longitude : Double)
     //val spotList: MutableList<SpotData> = mutableListOf()
     val spotList = arrayListOf<SpotData>()
-    var spotName : EditText? = null
+    var spotNameTextView : EditText? = null
+    var commentTextView : EditText? = null
+    lateinit var spotImageView1 : ImageView
+    lateinit var spotImageView2 : ImageView
+    lateinit var spotImageView3 : ImageView
+    var longitude : Double = 0.0
+    var latitude : Double = 0.0
+    var image_A : String = ""
+    var image_B : String = ""
+    var image_C : String = ""
 
-    var mRealm = Realm.getDefaultInstance()
+    var imageIntent = getIntent()
+    private lateinit var mRealm : Realm
+    var editFlag : Boolean = false
+
+    val df = SimpleDateFormat("yyyyMMddHHmmssSSS")
 
     val RESULT_SUBACTIVITY = 1000
-
     var JsonArray = JSONArray()
 
-    //private lateinit var mLatTextView: TextView
-    //private lateinit var mLongTextView: TextView
+    lateinit private var spot: SpotData
 
     companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 12345
+        private const val RESULT_PICK_IMAGEFILE = 1001
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("test","onCreate")
@@ -65,17 +94,101 @@ class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMar
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_put_spot)
 
-        spotName = findViewById(R.id.nameText) as EditText
+        spotNameTextView = findViewById(R.id.nameText) as EditText
+        commentTextView = findViewById(R.id.commentEditText) as EditText
+
+        val saveButton = findViewById<Button>(R.id.saveButton)
+        saveButton.setOnClickListener {
+            savaSpot()
+        }
+
+        imageIntent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        imageIntent.addCategory(Intent.CATEGORY_OPENABLE)
+        imageIntent.type = "*/*"
+
+        spotImageView1 = this.findViewById(R.id.imageView1) as ImageView
+        spotImageView2 = this.findViewById(R.id.imageView2) as ImageView
+        spotImageView3 = this.findViewById(R.id.imageView3) as ImageView
+
+        spotImageView1.setOnClickListener({ view ->
+            tappedImageNum = 1
+            onClickImage()
+        })
+        spotImageView2.setOnClickListener({ view ->
+            tappedImageNum = 2
+            onClickImage()
+        })
+        spotImageView3.setOnClickListener({ view ->
+            tappedImageNum = 3
+            onClickImage()
+        })
+
 
         Realm.init(this)
-        mRealm = Realm.getDefaultInstance()
+        //val config = RealmConfiguration.Builder().build()
+        //Realm.setDefaultConfiguration(config)
+        val realmConfig = RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .build()
+        mRealm = Realm.getInstance(realmConfig)
+        //mRealm = Realm.getDefaultInstance()
 
-        val mapFragment = fragmentManager.findFragmentById(R.id.map) as MapFragment
+        //val mapFragment = fragmentManager.findFragmentById(R.id.mapFragment) as MapFragment
+
+        if(intent.getSerializableExtra("SPOT") != null) {
+            editFlag = true
+            spot = intent.getSerializableExtra("SPOT") as SpotData
+            spotNameTextView!!.setText(spot.title)
+            commentTextView!!.setText(spot.comment)
+            if (!spot.image_A.equals("")){
+                image_A = spot.image_A
+                val bmImg = BitmapFactory.decodeFile(spot.image_A)
+                spotImageView1.setImageBitmap(bmImg)
+            }
+            if (!spot.image_B.equals("")){
+                image_B = spot.image_B
+                val bmImg = BitmapFactory.decodeFile(spot.image_B)
+                spotImageView2.setImageBitmap(bmImg)
+            }
+            if (!spot.image_C.equals("")){
+                image_C = spot.image_C
+                val bmImg = BitmapFactory.decodeFile(spot.image_C)
+                spotImageView3.setImageBitmap(bmImg)
+            }
+        }
+
+        val mapFragment = fragmentManager.findFragmentById(R.id.mapFragment) as MapFragment
         mapFragment.getMapAsync(this)
+
+        //val mapFragment2 = getSupportFragmentManager().findFragmentById(R.id.mapFragment) as SupportMapFragment
+        //mMap = mapFragment2.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        PinButtonTapped()
+        if(intent.getSerializableExtra("SPOT") == null) {
+            PinButtonTapped()
+            /*spot = intent.getSerializableExtra("SPOT") as SpotData
+            if (!spot.image_A.equals("")){
+                val bmImg = BitmapFactory.decodeFile(spot.image_A)
+                spotImageView1.setImageBitmap(bmImg)
+            }
+            if (!spot.image_B.equals("")){
+                val bmImg = BitmapFactory.decodeFile(spot.image_B)
+                spotImageView2.setImageBitmap(bmImg)
+            }
+            if (!spot.image_C.equals("")){
+                val bmImg = BitmapFactory.decodeFile(spot.image_C)
+                spotImageView3.setImageBitmap(bmImg)
+            }
+            Log.d("editFlag","エディットフラグ")*/
+            //editFlag = true
+            //placeMarkerOnMap(LatLng(spot.latitude, spot.longitude))
+        }else{
+            //PinButtonTapped()
+        }
+
+
+        //PinButtonTapped()
 
     }
 
@@ -100,34 +213,110 @@ class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMar
             }
             return
         }
+
         setUpMap()
     }
 
 
     override fun onMapReady(googleMap: GoogleMap) {
-        //　位置情報権限確認
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        Log.d("ttttttttttttttttttttttt","あああああああああああああああいいいいいいいいいいいいいいいいいいいいいい")
 
-            //　権限がない場合
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+        if (editFlag == false){
+            //　位置情報権限確認
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                //startActivity(Intent(this, StartActivity::class.java))
+                //　権限がない場合
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+                mMap = googleMap
+                return
+            }
+
             mMap = googleMap
-            return
+            // ピンのクリックリスナー
+            mMap.setOnMarkerClickListener(this)
+            //　現在位置マーカーと現在位置ボタン有効化
+            mMap.isMyLocationEnabled = true
+        }else{
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(spot.latitude, spot.longitude),17f))
+            googleMap.addMarker(MarkerOptions().position(LatLng(spot.latitude, spot.longitude)).title(spot.title)).showInfoWindow()
         }
-        mMap = googleMap
 
-        // ピンのクリックリスナー
-        mMap.setOnMarkerClickListener(this)
-        //　現在位置マーカーと現在位置ボタン有効化
-        mMap.isMyLocationEnabled = true
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+
+        Log.d("vvvvvvvvvvvvvvvvvvvvvv","あああああああああああああああいいいいいいいいいいいいいいいいいいいいいい")
         // 自分のコード以外がrequestPermissionsしているかもしれないので、requestCodeをチェックします。
-        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+
+            if (grantResults.any { it != PackageManager.PERMISSION_GRANTED }) {
+                // リクエストを蹴られた場合はどうしましょ？　今回は、単純にActivityを終了させます。
+                Log.d("check","許可しない")
+                finish()
+                return
+            }else{
+                setUpMap()
+                onMapReady(mMap)
+            }
+
+            //onMapReady(mMap)
+        }else{
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-            return
         }
-        onMapReady(mMap)
+    }
+
+    override fun onActivityResult(requestCode : Int, resultCode : Int, data : Intent) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == RESULT_PICK_IMAGEFILE) {
+
+            if(resultCode != RESULT_OK) {
+                // キャンセル時
+                return
+            }
+
+            var resultUri : Uri? = if(data != null) data.getData() else m_uri
+
+            if(resultUri == null) {
+                // 取得失敗
+                return
+            }
+
+            // ギャラリーへスキャンを促す
+            MediaScannerConnection.scanFile(
+                    this,
+                    arrayOf(resultUri.getPath()),
+                    arrayOf("image/jpeg"),
+                    null
+            )
+
+            Log.d("URI", resultUri.toString())
+            Log.d("URI2", resultUri.getPath())
+            Log.d("URI3", getPathFromUri(this,resultUri))
+
+            when(tappedImageNum){
+                1 -> {
+                    spotImageView1.setImageURI(resultUri)
+                    image_A = getPathFromUri(this,resultUri)
+                }
+                2 -> {
+                    spotImageView2.setImageURI(resultUri)
+                    image_B = getPathFromUri(this,resultUri)
+
+                }
+                3 -> {
+                    spotImageView3.setImageURI(resultUri)
+                    image_C = getPathFromUri(this,resultUri)
+                }
+            }
+        }
+    }
+
+    fun onClickImage() {
+        // イメージ画像がクリックされたときに実行される処理
+        startActivityForResult(imageIntent, RESULT_PICK_IMAGEFILE);
     }
 
 
@@ -138,31 +327,29 @@ class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMar
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             //　権限がない場合
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+            //////ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+            //ActivityCompat.requestPermissions()
+            //startActivity(Intent(this, StartActivity::class.java))
             return
         }
+
+        Log.d("test", "setUpMapの２")
 
         fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
             //最後に既知の場所を取得します。 まれな状況では、これはヌルになる可能性があります。
             if (location != null) {
                 lastLocation = location
                 val currentLatLng = LatLng(location.latitude, location.longitude)
-                /****/
-                //mLatTextView.text = locationlatitude.toString()
-                //mLongTextView.text = location.longitude.toString()
-                /****/
+                latitude = location.latitude.toDouble()
+                Log.d("座ひょー", location.latitude.toString())
+                Log.d("座ひょー2", location.latitude.toLong().toString())
+                longitude = location.longitude.toDouble()
 
-                spotList.add(SpotData(spotName!!.getText().toString(),location.latitude,location.longitude, "","","","",Date()))
+                spotList.add(SpotData("tokenID",spotNameTextView!!.getText().toString(),location.latitude,location.longitude, "","","","",Date()))
 
                 Log.d("テスト", spotList.get(0).title)
 
                 placeMarkerOnMap(currentLatLng)
-
-                var cameraPosition: CameraPosition = CameraPosition.Builder()
-                        .target(currentLatLng)
-                        .zoom(15f)
-                        .build()
-                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
 
             }else{
                 Log.d("ヌルチェッカー","null")
@@ -172,8 +359,10 @@ class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMar
 
     //　現在位置にマーカー設置
     private fun placeMarkerOnMap(location: LatLng) {
+
         Log.d("test", "place marker")
         mMap.clear()
+
         //　マーカー作成
         val markerOptions = MarkerOptions().position(location)
 
@@ -186,6 +375,12 @@ class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMar
 
         //　マーカー設置
         mMap.addMarker(markerOptions)
+
+        var cameraPosition: CameraPosition = CameraPosition.Builder()
+                .target(location)
+                .zoom(15f)
+                .build()
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
     }
 
     //　住所表示
@@ -215,9 +410,151 @@ class PutSpotActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMar
         return addressText
     }
 
+    fun savaSpot(){
+        createSpot(spotNameTextView!!.text.toString(),latitude,longitude,commentTextView!!.text.toString(), image_A,image_B,image_C )
+        print(mRealm.where(RealmSpotData::class.java).findAll())
+        startActivity(Intent(this, StartActivity::class.java))
+    }
+
+    fun createSpot(name : String, latitude : Double, longitude : Double, comment : String, image_A : String, image_B : String, image_C : String){
+
+        if(editFlag == false) {
+            create(name, latitude, longitude, comment, image_A, image_B, image_C)
+        }else{
+            mRealm.executeTransaction {
+                var editSpot = mRealm.where(TestRea::class.java).equalTo("id",spot.id).findFirst()
+                editSpot!!.name = name
+                editSpot!!.comment = comment
+                editSpot!!.image_A = image_A
+                editSpot!!.image_B = image_B
+                editSpot!!.image_C = image_C
+            }
+        }
+
+        Log.d("Realm", mRealm.where(TestRea::class.java).findAll().toString())
+
+        /*mRealm!!.beginTransaction()
+
+        var RspotData = mRealm!!.createObject(RealmSpotData::class.java)
+        //var RspotData = RealmSpotData()
+        RspotData.id = 73824902
+        RspotData.name = name
+        RspotData.latitude = latitude
+        RspotData.longitude = longitude
+        RspotData.comment = ""
+        RspotData.datetime = Date()
+        RspotData.image_A = image_A
+        RspotData.image_B = image_B
+        RspotData.image_C = image_C
+        //mRealm!!.insert(RspotData)
+        mRealm!!.copyToRealm(RspotData)
+
+        mRealm!!.commitTransaction()
+
+
+        mRealm!!.executeTransaction {
+            //var RspotData = mRealm!!.createObject(RealmSpotData::class.java)
+            //var RspotData = RealmSpotData(df.format(Date()).toInt(),name,latitude,longitude,"",Date(),"","","")
+            //var RspotData = RealmSpotData(783927482,"",0.0,0.0,"",Date(),"","","")
+            var RspotData = mRealm!!.createObject(TestRea::class.java)
+            //var RspotData = RealmSpotData()
+            RspotData.id = 73824902
+            RspotData.name = name
+            RspotData.latitude = latitude
+            RspotData.longitude = longitude
+            RspotData.comment = ""
+            RspotData.datetime = Date()
+            RspotData.image_A = image_A
+            RspotData.image_B = image_B
+            RspotData.image_C = image_C
+            //mRealm!!.insert(RspotData)
+            mRealm!!.copyToRealm(RspotData)
+            //mRealm!!.insert(RealmSpotData(1,"first",1,1,"",Date(),"","",""))
+        }
+        print( mRealm!!.where(RealmSpotData::class.java).findAll())
+        Log.d("Realm", mRealm!!.where(RealmSpotData::class.java).findAll().toString())*/
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         mRealm.close()
+    }
+
+    fun getPathFromUri(context : Context, uri : Uri) : String {
+        var isAfterKitKat : Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+        // DocumentProvider
+        Log.e("TAG","uri:" + uri.getAuthority());
+        if (isAfterKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            if ("com.android.externalstorage.documents".equals(
+                    uri.getAuthority())) {// ExternalStorageProvider
+                var docId : String = DocumentsContract.getDocumentId(uri)
+                var split = docId.split(":")
+                var type : String = split[0]
+                //if ("primary".equalsIgnoreCase(type)) {
+                if ("primary".equals(type)) {
+                    return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                }else {
+                    return "/stroage/" + type +  "/" + split[1]
+                }
+            }else if ("com.android.providers.downloads.documents".equals(
+                    uri.getAuthority())) {// DownloadsProvider
+                var id : String = DocumentsContract.getDocumentId(uri)
+                var contentUri : Uri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), id.toLong())
+                return getDataColumn(context, contentUri, null, null)
+            }else if ("com.android.providers.media.documents".equals(
+                    uri.getAuthority())) {// MediaProvider
+                var docId : String = DocumentsContract.getDocumentId(uri)
+                var split = docId.split(":")
+                var type : String = split[0]
+                var contentUri : Uri? = null
+                contentUri = MediaStore.Files.getContentUri("external")
+                var selection : String = "_id=?"
+                /*var selectionArgs = {
+                        split[1]
+                }*/
+                var selectionArgs = arrayOf(split[1])
+                return getDataColumn(context, contentUri, selection, *selectionArgs)
+            }
+        }else if ("content".equals(uri.getScheme())) {//MediaStore
+            return getDataColumn(context, uri, null, null)
+        }else if ("file".equals(uri.getScheme())) {// File
+            return uri.getPath()
+        }
+        return ""
+    }
+
+    fun getDataColumn(context : Context, uri : Uri, selection : String?,
+                      vararg selectionArgs : String?/*[]*/) : String {
+        var cursor : Cursor? = null
+        var projection = arrayOf(MediaStore.Files.FileColumns.DATA)
+        try {
+            cursor = context.getContentResolver().query(
+                    uri, projection, selection, selectionArgs, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                var cindex : Int = cursor.getColumnIndexOrThrow(projection[0]);
+                return cursor.getString(cindex);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close()
+        }
+        return ""
+    }
+
+    fun create(name:String, latitude : Double, longitude: Double, comment: String, image_A: String, image_B: String, image_C: String){
+        mRealm.executeTransaction {
+            var trea = mRealm.createObject(TestRea::class.java , UUID.randomUUID().toString())
+            trea.name = name
+            trea.latitude = latitude
+            trea.longitude = longitude
+            trea.comment = comment
+            trea.image_A = image_A
+            trea.image_B = image_B
+            trea.image_C = image_C
+
+            mRealm.copyToRealm(trea)
+        }
     }
 
     inner class GetAllMemoTask: AsyncTask<String, String, String>() {

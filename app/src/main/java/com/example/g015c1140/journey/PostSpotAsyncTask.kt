@@ -7,7 +7,7 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
+class PostSpotAsyncTask : AsyncTask<MutableList<SpotData>, String, String>() {
 
     //callBack用
     private var callbackPostSpotAsyncTask: CallbackPostSpotAsyncTask? = null
@@ -18,7 +18,7 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
         //ここでAPIを叩きます。バックグラウンドで処理する内容です。
         var connection: HttpURLConnection? = null
         var postResult: String? = null
-        var httpResult:String? = null
+        var httpResult: String? = null
         val url = URL(Setting().SPOT_POST_URL)
 
         val spotList = params[0]
@@ -48,9 +48,9 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
                             "&spot_title=${it.title}" +
                             "&spot_address=${it.latitude},${it.longitude}" +
                             "&spot_comment=${it.comment}" +
-                            "&spot_image_A=${it.image_A}" +
-                            "&spot_image_B=${it.image_B}" +
-                            "&spot_image_C=${it.image_C}"
+                            "&spot_image_a=${it.image_A}" +
+                            "&spot_image_b=${it.image_B}" +
+                            "&spot_image_c=${it.image_C}"
                             ).toByteArray()
                     )
                     out.flush()
@@ -87,16 +87,16 @@ class PostSpotAsyncTask: AsyncTask<MutableList<SpotData>, String, String>() {
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
 
-        Log.d("test PostSpot","onPostEx: $result")
-        when(result){
+        Log.d("test PostSpot", "onPostEx: $result")
+        when (result) {
             "HTTP-OK:SPOT送信OK" -> {
-                Log.d("test PostSpot","HTTP-OK")
+                Log.d("test PostSpot", "HTTP-OK")
                 callbackPostSpotAsyncTask!!.callback("RESULT-OK")
                 return
             }
 
-            else ->{
-                Log.d("test PostSpot","HTTP-NG")
+            else -> {
+                Log.d("test PostSpot", "HTTP-NG")
                 callbackPostSpotAsyncTask!!.callback("RESULT-NG")
                 return
             }

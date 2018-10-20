@@ -4,16 +4,16 @@ import java.io.Serializable
 import java.util.*
 
 data class SpotData(
-        val id : String,
-        val title : String,
-        val latitude : Double,
-        val longitude : Double,
+        val id: String,
+        val title: String,
+        val latitude: Double,
+        val longitude: Double,
         val comment: String,
-        val image_A: String,
-        val image_B: String,
-        val image_C: String,
-        val dateTime : Date
-): Serializable
+        var image_A: String,
+        var image_B: String,
+        var image_C: String,
+        val dateTime: Date
+) : Serializable
 
 /*
 * スポットの追加APIには以下が必要
